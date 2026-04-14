@@ -37,6 +37,7 @@ const dom = {
   tabPanes: document.querySelectorAll('.tab-pane'),
   
   displaySavings: document.getElementById('display-savings'),
+  btnEditProfile: document.getElementById('btn-edit-profile'),
   topGoalProgress: document.getElementById('top-goal-progress'),
   recentAuditsList: document.getElementById('recent-audits-list'),
   
@@ -135,6 +136,15 @@ function setupEventListeners() {
       switchTab(btn.dataset.tab);
     });
   });
+
+  // Edit Profile Click
+  if (dom.btnEditProfile) {
+    dom.btnEditProfile.addEventListener('click', () => {
+      document.getElementById('current-savings').value = appState.user.currentSavings || '';
+      document.getElementById('monthly-salary').value = appState.user.monthlySalary || '';
+      showOnboarding();
+    });
+  }
 
   // Add Goal Submit
   dom.addGoalForm.addEventListener('submit', (e) => {
