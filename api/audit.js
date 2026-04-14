@@ -39,7 +39,7 @@ Evaluate this purchase against their labor hours and goals. Return the required 
 
   try {
     console.log("Calling Gemini 1.5 Flash endpoint...");
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ Evaluate this purchase against their labor hours and goals. Return the required 
         contents: [{
           parts: [{ text: promptText }]
         }],
-        generation_config: {
+        generationConfig: {
           response_mime_type: "application/json",
           temperature: 0.8
         }
@@ -81,16 +81,21 @@ Evaluate this purchase against their labor hours and goals. Return the required 
       try {
         return JSON.parse(text);
       } catch (e) {
-        console.log("Failed to strictly parse JSON, attempting string extraction. Raw text:", text);
-        const jsonMatch = text.match(/\{[\s\S]*?\}/);
-        if (jsonMatch) {
-           try {
-             return JSON.parse(jsonMatch[0]);
-           } catch (innerE) {
-             throw new Error("Extracted JSON string was invalid.");
-           }
+        console.log("Failed to strictly parse JSON, attempting extremely aggressive string extraction. Raw text:", text);
+        
+        // Strip everything before the first '{' and after the last '}'
+        const firstBrace = text.indexOf('{');
+        const lastBrace = text.lastIndexOf('}');
+        
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
+          const jsonString = text.substring(firstBrace, lastBrace + 1);
+          try {
+            return JSON.parse(jsonString);
+          } catch (innerE) {
+            throw new Error(`Aggressively extracted JSON string was invalid: ${jsonString}`);
+          }
         }
-        throw new Error("No JSON object could be extracted from AI response.");
+        throw new Error("No JSON object (no matching { }) could be extracted from AI response.");
       }
     }
     
