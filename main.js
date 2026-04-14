@@ -181,6 +181,10 @@ function setupEventListeners() {
       topGoalName = appState.goals[0].name;
       topGoalRemaining = appState.goals[0].targetAmount - appState.goals[0].currentSaved;
     }
+    
+    // Calculate Safe To Spend Context
+    const totalGoals = appState.goals.reduce((sum, g) => sum + g.targetAmount, 0);
+    const safeToSpend = appState.user.monthlySalary - appState.user.currentSavings - totalGoals;
 
     try {
       const response = await fetch('/api/audit', {
@@ -193,7 +197,8 @@ function setupEventListeners() {
           price,
           hourlyWage: appState.user.hourlyWage,
           topGoalName,
-          topGoalRemaining
+          topGoalRemaining,
+          safeToSpend
         })
       });
 
@@ -252,6 +257,28 @@ function setupEventListeners() {
 function updateDashboard() {
   dom.wageDisplay.textContent = `$${appState.user.hourlyWage.toFixed(2)} / hr`;
   dom.displaySavings.textContent = `$${appState.user.currentSavings.toLocaleString()}`;
+  
+  // New Dashboard Calculations
+  const totalGoals = appState.goals.reduce((sum, g) => sum + g.targetAmount, 0);
+  const safeToSpend = appState.user.monthlySalary - appState.user.currentSavings - totalGoals;
+  
+  const safeElem = document.getElementById('display-safe-to-spend');
+  if (safeElem) safeElem.textContent = `$${Math.max(0, safeToSpend).toLocaleString()}`;
+  
+  const today = new Date();
+  let payday = new Date(today.getFullYear(), today.getMonth(), 30);
+  if (today > payday) payday = new Date(today.getFullYear(), today.getMonth() + 1, 30);
+  const diffDays = Math.ceil(Math.abs(payday - today) / (1000 * 60 * 60 * 24));
+  
+  const payElem = document.getElementById('display-payday');
+  if (payElem) payElem.textContent = `${diffDays} days`;
+  
+  const vibeElem = document.getElementById('display-vibe-status');
+  if (vibeElem) {
+    if (safeToSpend > 500) vibeElem.textContent = 'Financial King/Queen 👑';
+    else if (safeToSpend > 100) vibeElem.textContent = 'Doing Okay 👍';
+    else vibeElem.textContent = 'Touching Grass Req\'d 💀';
+  }
   
   if (appState.goals.length > 0) {
     const topGoal = appState.goals[0];

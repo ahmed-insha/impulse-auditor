@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { item, price, hourlyWage, topGoalName, topGoalRemaining } = req.body;
+  const { item, price, hourlyWage, topGoalName, topGoalRemaining, safeToSpend } = req.body;
   
   if (!item || !price || !hourlyWage) {
     console.error("Missing body parameters:", req.body);
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   const laborHours = (price / hourlyWage).toFixed(1);
 
   const systemInstruction = `You are 'The Impulse Auditor', a brutally honest, GenZ financial conscience. You value financial freedom, mock wasteful spending, and use GenZ slang (e.g., bestie, literally, touching grass, roasted). 
-You must calculate the labor cost and determine if this purchase hurts the user's top goal.
+You must calculate the labor cost and determine if this purchase hurts the user's top goal. If the item price is more than the user's Safe to Spend amount, be extra ruthless about protecting their goal.
 Return ONLY valid JSON in this exact structure, with no markdown formatting around it:
 { "decision": "Buy", "reasoning": "string" }
 Valid 'decision' values are exactly: "Buy", "Wait 48h", or "Pivot".`;
@@ -33,6 +33,7 @@ User Context:
 - Price: $${price}
 - User's Hourly Wage: $${hourlyWage}/hr
 - Labor Cost: ${laborHours} hours of their life
+- Safe to Spend: $${safeToSpend !== undefined ? safeToSpend : 0}
 ${topGoalName ? `- Top Goal: ${topGoalName} (Still needs $${topGoalRemaining})` : '- No specific active goals right now.'}
 
 Evaluate this purchase against their labor hours and goals. Return the required JSON format.`;
