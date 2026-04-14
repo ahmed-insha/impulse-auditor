@@ -8,6 +8,8 @@ let appState = {
     currentSavings: 0,
     monthlySalary: 0,
     hourlyWage: 0,
+    essentialsPct: 50,
+    goalsPct: 20,
     onboardingComplete: false
   },
   goals: [],
@@ -119,9 +121,13 @@ function setupEventListeners() {
     e.preventDefault();
     const savings = parseFloat(document.getElementById('current-savings').value);
     const salary = parseFloat(document.getElementById('monthly-salary').value);
+    const essentials = parseFloat(document.getElementById('essentials-pct').value);
+    const goalsP = parseFloat(document.getElementById('goals-pct').value);
     
     appState.user.currentSavings = savings;
     appState.user.monthlySalary = salary;
+    appState.user.essentialsPct = essentials;
+    appState.user.goalsPct = goalsP;
     // Calculation: 40 hrs * 4 weeks = 160 hrs
     appState.user.hourlyWage = salary / 160;
     appState.user.onboardingComplete = true;
@@ -142,6 +148,8 @@ function setupEventListeners() {
     dom.btnEditProfile.addEventListener('click', () => {
       document.getElementById('current-savings').value = appState.user.currentSavings || '';
       document.getElementById('monthly-salary').value = appState.user.monthlySalary || '';
+      document.getElementById('essentials-pct').value = appState.user.essentialsPct || 50;
+      document.getElementById('goals-pct').value = appState.user.goalsPct || 20;
       showOnboarding();
     });
   }
@@ -193,8 +201,9 @@ function setupEventListeners() {
     }
     
     // Calculate Safe To Spend Context
-    const totalGoals = appState.goals.reduce((sum, g) => sum + g.targetAmount, 0);
-    const safeToSpend = appState.user.monthlySalary - appState.user.currentSavings - totalGoals;
+    const essentialsPct = (appState.user.essentialsPct || 50) / 100;
+    const goalsPct = (appState.user.goalsPct || 20) / 100;
+    const safeToSpend = appState.user.monthlySalary * (1 - essentialsPct - goalsPct);
 
     try {
       const response = await fetch('/api/audit', {
@@ -269,8 +278,9 @@ function updateDashboard() {
   dom.displaySavings.textContent = `$${appState.user.currentSavings.toLocaleString()}`;
   
   // New Dashboard Calculations
-  const totalGoals = appState.goals.reduce((sum, g) => sum + g.targetAmount, 0);
-  const safeToSpend = appState.user.monthlySalary - appState.user.currentSavings - totalGoals;
+  const essentialsPct = (appState.user.essentialsPct || 50) / 100;
+  const goalsPct = (appState.user.goalsPct || 20) / 100;
+  const safeToSpend = appState.user.monthlySalary * (1 - essentialsPct - goalsPct);
   
   const safeElem = document.getElementById('display-safe-to-spend');
   if (safeElem) safeElem.textContent = `$${Math.max(0, safeToSpend).toLocaleString()}`;

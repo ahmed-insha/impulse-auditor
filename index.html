@@ -22,6 +22,12 @@
         <label for="monthly-salary">What's the monthly paycheck? ($)</label>
         <input type="number" id="monthly-salary" required placeholder="e.g. 3000" min="0">
         
+        <label for="essentials-pct">Monthly Essentials % (e.g. 50 for rent/food/bills)</label>
+        <input type="number" id="essentials-pct" required placeholder="50" min="0" max="100" value="50">
+        
+        <label for="goals-pct">Monthly Goal Contribution % (e.g. 20 for Vacations)</label>
+        <input type="number" id="goals-pct" required placeholder="20" min="0" max="100" value="20">
+        
         <button type="submit" class="primary-btn">Face Reality &rarr;</button>
       </form>
     </div>
@@ -29,9 +35,12 @@
 
   <!-- Main App View -->
   <section id="main-app" class="screen hidden">
-    <header>
-      <h1>Impulse<br>Auditor</h1>
-      <div class="wage-pill" id="wage-display"></div>
+    <header style="align-items: flex-start;">
+      <div>
+        <h1>Impulse<br>Auditor</h1>
+        <div class="wage-pill" id="wage-display" style="display:inline-block; margin-top:0.5rem;"></div>
+      </div>
+      <button id="btn-edit-profile" class="secondary-btn" style="width: auto; margin: 0; padding: 0.5rem 1rem; font-size: 0.85rem; border-color: rgba(255,255,255,0.2);">Edit ⚙️</button>
     </header>
 
     <main id="tab-content-area">
@@ -60,10 +69,7 @@
           </div>
         </div>
         <div class="recent-audits-section">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="margin: 0;">Recent Audits</h3>
-            <button id="btn-edit-profile" class="secondary-btn" style="width: auto; margin: 0; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Edit Profile ⚙️</button>
-          </div>
+          <h3>Recent Audits</h3>
           <ul id="recent-audits-list" class="glass-list"></ul>
         </div>
       </section>
