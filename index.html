@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Impulse Auditor</title>
+  <meta name="description" content="A brutally honest GenZ personal finance assistant.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Onboarding Section (Overlay) -->
+  <section id="onboarding" class="screen active">
+    <div class="glass-container">
+      <h1>The Impulse Auditor 💸</h1>
+      <p>Time to face the music. How much do you really make?</p>
+      
+      <form id="onboarding-form">
+        <label for="current-savings">What's in the piggy bank? ($)</label>
+        <input type="number" id="current-savings" required placeholder="e.g. 1500" min="0">
+        
+        <label for="monthly-salary">What's the monthly paycheck? ($)</label>
+        <input type="number" id="monthly-salary" required placeholder="e.g. 3000" min="0">
+        
+        <button type="submit" class="primary-btn">Face Reality &rarr;</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Main App View -->
+  <section id="main-app" class="screen hidden">
+    <header>
+      <h1>Impulse<br>Auditor</h1>
+      <div class="wage-pill" id="wage-display"></div>
+    </header>
+
+    <main id="tab-content-area">
+      <!-- Tab 1: Dashboard -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <div class="dashboard-metrics">
+          <div class="metric-card highlight">
+            <span>Total Savings</span>
+            <h2 id="display-savings">$0</h2>
+          </div>
+          <div class="metric-card">
+            <span>Top Goal Progress</span>
+            <div id="top-goal-progress" class="small-text">No active goals.</div>
+          </div>
+        </div>
+        <div class="recent-audits-section">
+          <h3>Recent Audits</h3>
+          <ul id="recent-audits-list" class="glass-list"></ul>
+        </div>
+      </section>
+
+      <!-- Tab 2: Auditor -->
+      <section id="tab-auditor" class="tab-pane hidden">
+        <div class="auditor-terminal glass-container">
+          <h2>Launch an Audit 🚀</h2>
+          <form id="audit-form">
+            <input type="text" id="audit-item" required placeholder="What do you want? (e.g. AirPods Max)">
+            <input type="number" id="audit-price" required placeholder="How much? ($)" min="1">
+            <button type="submit" class="danger-btn">Should I Buy It? 👀</button>
+          </form>
+
+          <div id="audit-result" class="hidden">
+            <h3 id="audit-verdict"></h3>
+            <p id="audit-hours" class="hours-warning"></p>
+            <p id="audit-reasoning"></p>
+            <div class="audit-actions">
+              <button id="btn-save-audit" class="secondary-btn">Save to History</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 3: Goals -->
+      <section id="tab-goals" class="tab-pane hidden">
+        <form id="add-goal-form" class="glass-container">
+          <h3>Add a New Big Goal 🎯</h3>
+          <input type="text" id="goal-name" required placeholder="e.g. Japan Vacation 🗼">
+          <input type="number" id="goal-target" required placeholder="Target Amount ($)" min="1">
+          <button type="submit" class="primary-btn">Add Goal</button>
+        </form>
+        <div class="goals-list-container">
+           <ul id="goals-list" class="glass-list"></ul>
+        </div>
+      </section>
+
+      <!-- Tab 4: History -->
+      <section id="tab-history" class="tab-pane hidden">
+        <h3>Audit History 📜</h3>
+        <ul id="history-list" class="glass-list"></ul>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="dashboard">📊<br>Dash</button>
+      <button class="nav-btn" data-tab="auditor">🚀<br>Audit</button>
+      <button class="nav-btn" data-tab="goals">🎯<br>Goals</button>
+      <button class="nav-btn" data-tab="history">📜<br>History</button>
+    </nav>
+  </section>
+
+  <script src="main.js" type="module"></script>
+</body>
+</html>
