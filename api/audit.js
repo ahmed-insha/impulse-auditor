@@ -45,7 +45,7 @@ Evaluate this purchase against their labor hours and goals. Return the required 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        systemInstruction: {
+        system_instruction: {
           parts: [{ text: systemInstruction }]
         },
         contents: [{
@@ -77,14 +77,24 @@ Evaluate this purchase against their labor hours and goals. Return the required 
     }
     
     // Safety fallback just in case Gemini ignored responseMimeType
-    let result;
-    try {
-       result = JSON.parse(rawText);
-    } catch (e) {
-       console.log("Failed to strictly parse JSON, attempting cleanup. Raw text:", rawText);
-       const stripped = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-       result = JSON.parse(stripped);
+    function extractJSON(text) {
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.log("Failed to strictly parse JSON, attempting string extraction. Raw text:", text);
+        const jsonMatch = text.match(/\{[\s\S]*?\}/);
+        if (jsonMatch) {
+           try {
+             return JSON.parse(jsonMatch[0]);
+           } catch (innerE) {
+             throw new Error("Extracted JSON string was invalid.");
+           }
+        }
+        throw new Error("No JSON object could be extracted from AI response.");
+      }
     }
+    
+    const result = extractJSON(rawText);
     
     console.log("Returning result to client:", result);
     return res.status(200).json(result);
