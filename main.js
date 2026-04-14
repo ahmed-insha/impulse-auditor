@@ -10,6 +10,8 @@ let appState = {
     hourlyWage: 0,
     essentialsPct: 50,
     goalsPct: 20,
+    initialGoalFunds: 0,
+    lastContributionMonth: '',
     onboardingComplete: false
   },
   goals: [],
@@ -121,16 +123,36 @@ function setupEventListeners() {
     e.preventDefault();
     const savings = parseFloat(document.getElementById('current-savings').value);
     const salary = parseFloat(document.getElementById('monthly-salary').value);
+    const initialFunds = parseFloat(document.getElementById('initial-goal-funds').value);
     const essentials = parseFloat(document.getElementById('essentials-pct').value);
     const goalsP = parseFloat(document.getElementById('goals-pct').value);
     
     appState.user.currentSavings = savings;
     appState.user.monthlySalary = salary;
+    appState.user.initialGoalFunds = initialFunds;
     appState.user.essentialsPct = essentials;
     appState.user.goalsPct = goalsP;
     // Calculation: 40 hrs * 4 weeks = 160 hrs
     appState.user.hourlyWage = salary / 160;
     appState.user.onboardingComplete = true;
+
+    // Distribute unallocated funds immediately if goals exist
+    if (appState.user.initialGoalFunds > 0 && appState.goals.length > 0) {
+      let unallocated = appState.user.initialGoalFunds;
+      for (let goal of appState.goals) {
+        if (unallocated <= 0) break;
+        const space = goal.targetAmount - goal.currentSaved;
+        if (space > 0) {
+          const amount = Math.min(unallocated, space);
+          goal.currentSaved += amount;
+          unallocated -= amount;
+        }
+      }
+      appState.user.initialGoalFunds = unallocated;
+    }
+    if (!appState.user.lastContributionMonth) {
+      appState.user.lastContributionMonth = new Date().toISOString().substring(0, 7);
+    }
     
     saveState();
     showMainApp();
@@ -148,6 +170,7 @@ function setupEventListeners() {
     dom.btnEditProfile.addEventListener('click', () => {
       document.getElementById('current-savings').value = appState.user.currentSavings || '';
       document.getElementById('monthly-salary').value = appState.user.monthlySalary || '';
+      document.getElementById('initial-goal-funds').value = appState.user.initialGoalFunds || 0;
       document.getElementById('essentials-pct').value = appState.user.essentialsPct || 50;
       document.getElementById('goals-pct').value = appState.user.goalsPct || 20;
       showOnboarding();
@@ -160,11 +183,17 @@ function setupEventListeners() {
     const name = dom.goalName.value;
     const target = parseFloat(dom.goalTarget.value);
     
+    let startingFunds = 0;
+    if (appState.user.initialGoalFunds > 0) {
+      startingFunds = Math.min(appState.user.initialGoalFunds, target);
+      appState.user.initialGoalFunds -= startingFunds;
+    }
+
     const newGoal = {
       id: 'g_' + Date.now(),
       name,
       targetAmount: target,
-      currentSaved: 0,
+      currentSaved: startingFunds,
       priority: 'medium'
     };
     
@@ -184,6 +213,17 @@ function setupEventListeners() {
     
     // Labor Hours Calculation (mostly for history logic/UI)
     const laborHours = price / appState.user.hourlyWage;
+    
+    // Monthly Contribution Rollover Check
+    const currentMonth = new Date().toISOString().substring(0, 7);
+    if (appState.user.lastContributionMonth && appState.user.lastContributionMonth !== currentMonth) {
+      const monthlyContribution = (appState.user.goalsPct / 100) * appState.user.monthlySalary;
+      if (appState.goals.length > 0) {
+        appState.goals[0].currentSaved += monthlyContribution;
+      }
+    }
+    appState.user.lastContributionMonth = currentMonth;
+    saveState();
     
     dom.auditResult.classList.remove('hidden');
     dom.auditVerdict.textContent = 'Thinking...';
@@ -302,7 +342,7 @@ function updateDashboard() {
   
   if (appState.goals.length > 0) {
     const topGoal = appState.goals[0];
-    dom.topGoalProgress.innerHTML = `<strong>${topGoal.name}</strong><br>$0 / $${topGoal.targetAmount}`;
+    dom.topGoalProgress.innerHTML = `<strong>${topGoal.name}</strong><br>$${topGoal.currentSaved.toLocaleString()} / $${topGoal.targetAmount.toLocaleString()}`;
   } else {
     dom.topGoalProgress.textContent = "No active goals.";
   }
