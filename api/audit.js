@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   // Debugging environment variables:
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.API_KEY || process.env.GROQ_API_KEY;
   if (!apiKey) {
     console.error("CRITICAL ERROR: API_KEY is missing from environment variables.");
     return res.status(500).json({ error: 'Key Missing: API_KEY is not set in Vercel Environment Variables.' });
@@ -38,45 +38,43 @@ ${topGoalName ? `- Top Goal: ${topGoalName} (Still needs $${topGoalRemaining})` 
 Evaluate this purchase against their labor hours and goals. Return the required JSON format.`;
 
   try {
-    console.log("Calling Gemini 1.5 Flash endpoint...");
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+    console.log("Calling Groq llama-3.3-70b-versatile endpoint...");
+    const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: systemInstruction }]
-        },
-        contents: [{
-          parts: [{ text: promptText }]
-        }],
-        generationConfig: {
-          response_mime_type: "application/json",
-          temperature: 0.8
-        }
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: promptText }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.8
       })
     });
 
     if (!response.ok) {
         const errText = await response.text();
-        console.error("Gemini API Error Status:", response.status);
-        console.error("Gemini API Error Details:", errText);
-        return res.status(response.status).json({ error: `Gemini API Error: ${errText}` });
+        console.error("Groq API Error Status:", response.status);
+        console.error("Groq API Error Details:", errText);
+        return res.status(response.status).json({ error: `Groq API Error: ${errText}` });
     }
 
     const data = await response.json();
-    console.log("Gemini API Success Response received.");
+    console.log("Groq API Success Response received.");
     
-    // Extract the text that Gemini Outputted
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    // Extract the text that Groq Outputted
+    const rawText = data.choices?.[0]?.message?.content;
     
     if (!rawText) {
       console.error("Empty response from AI:", JSON.stringify(data));
       throw new Error("No response returned from the AI.");
     }
     
-    // Safety fallback just in case Gemini ignored responseMimeType
+    // Safety fallback just in case Groq ignored response_format
     function extractJSON(text) {
       try {
         return JSON.parse(text);
